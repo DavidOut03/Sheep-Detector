@@ -14,7 +14,3 @@ While **muskrats** pose a more serious threat to dyke integrity due to their bur
 - Test detection performance on small, low-resolution objects
 - Provide insight into the feasibility of animal detection in this context
 - Lay the foundation for future detection of more elusive animals (e.g. muskrats)
-
-## 🧠 Model
-Full details about model selection and configuration can be found in [model.md](./MODEL.md).
-
