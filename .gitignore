@@ -1,4 +1,14 @@
+# Ignore virtual environments, model output, training runs
 venv/*
-dataset/*
 model/*
 runs/*
+
+# Don't ignore the trained model file
+!model/sheep-detector.pt
+
+# Ignore everything in dataset
+dataset/*
+
+# But don't ignore the annotations file and original images
+!dataset/annotations.xlsx
+!dataset/images/original/*
