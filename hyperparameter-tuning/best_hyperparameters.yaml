@@ -1,0 +1,13 @@
+# 50/50 iterations complete ✅ (4593.81s)
+# Results saved to s:\Deeplearning-inholland\Sheep-Detector\runs\detect\tune3
+# Best fitness=0.12254 observed at iteration 9
+# Best fitness metrics are {'metrics/precision(B)': 0.00889, 'metrics/recall(B)': 0.78689, 'metrics/mAP50(B)': 0.37402, 'metrics/mAP50-95(B)': 0.0946, 'val/box_loss': 0.05355, 'val/cls_loss': 3.60528, 'val/dfl_loss': 1.30441, 'fitness': 0.12254}
+# Best fitness model is s:\Deeplearning-inholland\Sheep-Detector\runs\detect\train28
+# Best fitness hyperparameters are printed below.
+
+lr0: 0.00949
+momentum: 0.86071
+weight_decay: 0.00048
+warmup_epochs: 2.18848
+box: 0.16628
+cls: 0.46895
