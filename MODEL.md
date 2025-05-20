@@ -40,12 +40,16 @@ It provides the best balance between detection performance and ease of integrati
 
 We plan to tune the following:
 
-| Parameter         | Description                                           |
-|-------------------|-------------------------------------------------------|
-| `batch_size`      | Affects training stability and memory efficiency      |
-| `learning_rate`   | Influences convergence speed and risk of overfitting  |
-| `frozen_layers`   | Helps retain pretrained features and avoid overfitting on small datasets |
-| `confidence_thresh` | Filters out low-confidence bounding boxes           |
+| Parameter              | Description                                                              | Strategy         | Typical Range           |
+|-------------------------|--------------------------------------------------------------------------|------------------|--------------------------|
+| `learning_rate` (`lr0`) | Initial learning rate controlling step size during training.             | Random Search    | 1e-5 to 1e-1             |
+| `momentum`              | Momentum factor to accelerate optimizer convergence.                    | Random Search    | 0.6 to 0.98              |
+| `weight_decay`          | Regularization term to avoid overfitting by penalizing large weights.    | Random Search    | 0.0 to 0.001             |
+| `warmup_epochs`         | Gradual learning rate increase phase during early training.              | Random Search    | 0 to 5                   |
+| `box`                   | Loss weight for object localization accuracy.                           | Random Search    | 0.02 to 0.2              |
+| `cls`                   | Loss weight for object classification accuracy.                         | Random Search    | 0.2 to 4.0               |
+
+
 
 
 ## 📊 Evaluation Metrics

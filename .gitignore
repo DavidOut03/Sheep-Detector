@@ -5,10 +5,8 @@ runs/*
 
 # Don't ignore the trained model file
 !model/sheep-detector.pt
+!model/sheep-detector+preprocessing.pt
+!model/sheep-detector+preprocessing+augmentation.pt
 
-# Ignore everything in dataset
-dataset/*
+notebooks/yolo11n.pt
 
-# But don't ignore the annotations file and original images
-!dataset/annotations.xlsx
-!dataset/images/original/*

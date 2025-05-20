@@ -3,6 +3,7 @@ import platform
 import subprocess
 from ultralytics import YOLO
 
+
 def print_section(title):
     print("\n" + "="*30)
     print(title)

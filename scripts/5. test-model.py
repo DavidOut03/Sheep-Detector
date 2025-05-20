@@ -12,7 +12,7 @@ DATASET_FOLDER = f"{ROOT_FOLDER}/dataset"
 IMAGE_TEST_FOLDER = f"{DATASET_FOLDER}/images/test"
 LABEL_TEST_FOLDER = f"{DATASET_FOLDER}/labels/test"
 
-model = YOLO(f"{ROOT_FOLDER}/model/sheep-detector.pt")
+model = YOLO(f"{ROOT_FOLDER}/model/sheep-detector+preprocessing+augmentation.pt")
 
 def load_yolo_labels(label_path):
     boxes = []
