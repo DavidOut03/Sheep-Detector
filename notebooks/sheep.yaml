@@ -1,8 +1,0 @@
-path: S:/Deeplearning-inholland/Sheep-Detector/dataset
-train: images/train
-val: images/val
-test: images/test
-
-
-nc: 1
-names: ['sheep']

@@ -1,0 +1,7 @@
+path: ./dataset/images
+train: train
+val: val
+test: test
+
+nc: 1
+names: ['sheep']
