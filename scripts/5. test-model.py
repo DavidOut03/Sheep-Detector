@@ -66,12 +66,10 @@ class ImageViewer:
         self.stats_labels = {
             "precision": tk.Label(self.left_frame, text="", fg="white", bg="#000", anchor="w"),
             "recall": tk.Label(self.left_frame, text="", fg="white", bg="#000", anchor="w"),
-            "f1": tk.Label(self.left_frame, text="", fg="white", bg="#000", anchor="w"),
             "iou": tk.Label(self.left_frame, text="", fg="white", bg="#000", anchor="w"),
             "found": tk.Label(self.left_frame, text="", fg="white", bg="#000", anchor="w"),
             "actual": tk.Label(self.left_frame, text="", fg="white", bg="#000", anchor="w"),
-            "legend1": tk.Label(self.left_frame, text="🟥 Prediction", fg="red", bg="#000", anchor="w"),
-            "legend2": tk.Label(self.left_frame, text="🟩 Ground Truth", fg="green", bg="#000", anchor="w"),
+            "legend1": tk.Label(self.left_frame, text="🟥 Predicted boxes", fg="red", bg="#000", anchor="w"),
         }
 
         for label in self.stats_labels.values():
@@ -86,8 +84,8 @@ class ImageViewer:
         ttk.Button(self.bottom_frame, text="Previous", command=self.show_prev).pack(side=tk.LEFT, padx=20)
         ttk.Button(self.bottom_frame, text="Next", command=self.show_next).pack(side=tk.RIGHT, padx=20)
 
-        self.root.bind("<Configure>", self.redraw_image)
         self.load_image(self.index)
+        self.root.bind("<Configure>", self.redraw_image)
 
     def load_image(self, idx):
         image_path = self.image_paths[idx]
@@ -102,19 +100,54 @@ class ImageViewer:
         draw = ImageDraw.Draw(display_img)
 
         gt_boxes = [yolo_to_xyxy(b, img_w, img_h) for b in load_yolo_labels(label_path)]
-        for box in gt_boxes:
-            draw.rectangle(box, outline="green", width=2)
 
         predictions = model(image_path)[0]
-        pred_boxes = [tuple(map(int, box[:4])) for box in predictions.boxes.xyxy.cpu().numpy()]
-        for box in pred_boxes:
-            draw.rectangle(box, outline="red", width=2)
+        class_ids = predictions.boxes.cls.cpu().numpy()
+        confidences = predictions.boxes.conf.cpu().numpy()
+        boxes = predictions.boxes.xyxy.cpu().numpy()
+        names = predictions.names  # dict of class index to name
+
+        for box, cls_id, conf in zip(boxes, class_ids, confidences):
+            if conf < 0.35:
+                continue
+            x1, y1, x2, y2 = map(int, box)
+            class_name = names[int(cls_id)]
+
+            # Draw box and confidence
+            draw.rectangle([x1, y1, x2, y2], outline="red", width=2)
+            text = f"{conf:.2f}"
+
+            # Calculate text size
+            bbox = draw.textbbox((0, 0), text)
+            text_width = bbox[2] - bbox[0]
+            text_height = bbox[3] - bbox[1]
+            text_x = x1
+            text_y = max(0, y1 - text_height - 2)  # Keep text inside the image
+
+            # Draw background and then text
+            draw.rectangle(
+                [text_x, text_y, text_x + text_width, text_y + text_height],
+                fill="black"
+            )
+            draw.text((text_x, text_y), text, fill="white")
 
         iou_list = []
         matched_gt = set()
         tp = 0
 
-        for p_box in pred_boxes:
+        iou_list = []
+        matched_gt = set()
+        tp = 0
+
+        # Filter and extract boxes above confidence threshold
+        boxes = predictions.boxes.xyxy.cpu().numpy()
+        confidences = predictions.boxes.conf.cpu().numpy()
+
+        filtered_boxes = [tuple(map(int, box)) for box, conf in zip(boxes, confidences) if conf >= 0.35]
+
+        gt_matches = {}  # key: gt index, value: (conf, iou)
+
+        for p_box, conf in zip(filtered_boxes, confidences):
             best_iou = 0
             best_idx = -1
             for i, g_box in enumerate(gt_boxes):
@@ -122,23 +155,25 @@ class ImageViewer:
                 if iou > best_iou:
                     best_iou = iou
                     best_idx = i
-            if best_iou >= 0.5 and best_idx not in matched_gt:
-                matched_gt.add(best_idx)
-                tp += 1
-                iou_list.append(best_iou)
+            if best_iou >= 0.5:
+                if best_idx not in gt_matches or conf > gt_matches[best_idx][0]:
+                    gt_matches[best_idx] = (conf, best_iou)
 
-        fp = len(pred_boxes) - tp
+        tp = len(gt_matches)
+        fp = len(filtered_boxes) - tp
+        fn = len(gt_boxes) - tp
+        iou_list = [v[1] for v in gt_matches.values()]
+
+        fp = len(filtered_boxes) - tp
         fn = len(gt_boxes) - tp
         precision = tp / (tp + fp) if (tp + fp) else 0
         recall = tp / (tp + fn) if (tp + fn) else 0
-        f1 = 2 * precision * recall / (precision + recall) if (precision + recall) else 0
         avg_iou = sum(iou_list) / len(iou_list) if iou_list else 0
 
         self.stats_labels["precision"].config(text=f"Precision: {precision:.2f}")
         self.stats_labels["recall"].config(text=f"Recall: {recall:.2f}")
-        self.stats_labels["f1"].config(text=f"F1 Score: {f1:.2f}")
         self.stats_labels["iou"].config(text=f"IoU (avg): {avg_iou:.2f}")
-        self.stats_labels["found"].config(text=f"Found sheep: {len(pred_boxes)}")
+        self.stats_labels["found"].config(text=f"Found sheep: {len(filtered_boxes)}")
         self.stats_labels["actual"].config(text=f"Actual sheep: {len(gt_boxes)}")
 
         self.display_image = display_img
